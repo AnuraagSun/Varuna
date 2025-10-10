@@ -1,11 +1,4 @@
-# Varuna
-
-https://github.com/AnuraagSun/Varuna/tree/main/DOCS
-
-
-
-
-# 🏗️ **COMPLETE SYSTEM ARCHITECTURE: Smart GSM Water Level Monitoring System**
+# 🏗️ **COMPLETE SYSTEM ARCHITECTURE: VARUNA**
 
 ## **EXECUTIVE SUMMARY**
 
