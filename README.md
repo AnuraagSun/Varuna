@@ -10,6 +10,7 @@ This document presents a **production-ready, scalable architecture** for CWC's a
 
 <img width="1536" height="1024" alt="ChatGPT Image Oct 16, 2025, 07_45_09 PM" src="https://github.com/user-attachments/assets/3d97102b-4b8b-46b2-a59d-c9b1b06ec2da" />
 
+<img width="1248" height="710" alt="Float based" src="https://github.com/user-attachments/assets/05f2129b-16f2-4a2b-9a0c-a06858816340" />
 
 
 ---
