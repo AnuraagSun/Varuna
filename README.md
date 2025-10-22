@@ -4,7 +4,7 @@
 
 This document presents a **production-ready, scalable architecture** for CWC's automated water level monitoring system using **Raspberry Pi 3 Model B** as the central processing unit. The system integrates multi-sensor redundancy, hybrid energy harvesting, intelligent communication protocols, and fail-safe mechanisms to operate autonomously in remote riverine environments.
 
-DO NOTE : If you are getting Unable to render rich display errors please refresh the page or use a different browser to view the flowcharts
+DO NOTE : If you are getting "Unable to render rich display errors" please refresh the page or use a different browser to view the flowcharts
 
 ## OUR SOLUTIONS :
 
