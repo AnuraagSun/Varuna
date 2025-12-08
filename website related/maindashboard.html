@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Varuna - Water Level Monitoring System | CWC</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Leaflet.js for maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        /* ========================================
+           CSS VARIABLES - Easy Theme Customization
+           ======================================== */
+        :root {
+            /* Primary Colors */
+            --primary-blue: #2563eb;
+            --primary-blue-hover: #1d4ed8;
+            --primary-blue-light: #dbeafe;
+            
+            /* Status Colors */
+            --success-green: #10b981;
+            --warning-yellow: #f59e0b;
+            --danger-red: #ef4444;
+            --info-cyan: #06b6d4;
+            
+            /* Neutral Colors */
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* Background */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+            
+            /* Text */
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-tertiary: #9ca3af;
+            
+            /* Borders */
+            --border-color: #e5e7eb;
+            --border-radius-sm: 6px;
+            --border-radius-md: 10px;
+            --border-radius-lg: 14px;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+            
+            /* Sidebar */
+            --sidebar-width: 260px;
+            --topbar-height: 64px;
+        }
+        
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --bg-tertiary: #374151;
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-tertiary: #9ca3af;
+            --border-color: #374151;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* ========================================
+           GLOBAL RESET & BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* ========================================
+           LAYOUT STRUCTURE
+           ======================================== */
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-primary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--info-cyan));
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+        
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .logo-text p {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Navigation Menu */
+        .nav-menu {
+            flex: 1;
+            padding: var(--spacing-md);
+            overflow-y: auto;
+        }
+        
+        .nav-section {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-xs);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .nav-item:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .nav-item.active {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+            font-weight: 500;
+        }
+        
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .nav-badge {
+            margin-left: auto;
+            background: var(--danger-red);
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: calc(100% - var(--sidebar-width));
+        }
+        
+        /* Top Bar */
+        .topbar {
+            height: var(--topbar-height);
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 var(--spacing-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            width: 400px;
+            transition: all 0.2s ease;
+        }
+        
+        .search-bar:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px var(--primary-blue-light);
+        }
+        
+        .search-bar i {
+            color: var(--text-tertiary);
+            margin-right: var(--spacing-sm);
+        }
+        
+        .search-bar input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .search-bar input::placeholder {
+            color: var(--text-tertiary);
+        }
+        
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .icon-button {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--border-radius-sm);
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .icon-button:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+        
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger-red);
+            border: 2px solid var(--bg-primary);
+            border-radius: 50%;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        
+        .user-profile:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-blue), var(--info-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .user-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .user-info p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+        }
+        
+        /* Page Header */
+        .page-header {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--border-radius-sm);
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-blue-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--bg-secondary);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            transition: all 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .stat-icon.blue {
+            background: var(--primary-blue-light);
+            color: var(--primary-blue);
+        }
+        
+        .stat-icon.green {
+            background: #d1fae5;
+            color: var(--success-green);
+        }
+        
+        .stat-icon.yellow {
+            background: #fef3c7;
+            color: var(--warning-yellow);
+        }
+        
+        .stat-icon.red {
+            background: #fee2e2;
+            color: var(--danger-red);
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .stat-change.positive {
+            color: var(--success-green);
+        }
+        
+        .stat-change.negative {
+            color: var(--danger-red);
+        }
+        
+        .stat-change.neutral {
+            color: var(--text-tertiary);
+        }
+        
+        /* Main Grid Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+        
+        .card-body {
+            padding: var(--spacing-lg);
+        }
+        
+        /* Map Container */
+        #map {
+            height: 450px;
+            border-radius: var(--border-radius-md);
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 350px;
+        }
+        
+        /* Device List */
+        .device-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .device-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            background: var(--bg-secondary);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .device-item:hover {
+            background: var(--bg-tertiary);
+            transform: translateX(4px);
+        }
+        
+        .device-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: var(--spacing-md);
+        }
+        
+        .device-status.online {
+            background: var(--success-green);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+        
+        .device-status.warning {
+            background: var(--warning-yellow);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+        
+        .device-status.offline {
+            background: var(--gray-400);
+        }
+        
+        .device-info {
+            flex: 1;
+        }
+        
+        .device-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .device-location {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .device-level {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Alert List */
+        .alert-item {
+            display: flex;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            border-left: 3px solid transparent;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .alert-item.danger {
+            border-left-color: var(--danger-red);
+            background: #fee2e2;
+        }
+        
+        .alert-item.warning {
+            border-left-color: var(--warning-yellow);
+            background: #fef3c7;
+        }
+        
+        .alert-item.info {
+            border-left-color: var(--info-cyan);
+            background: #cffafe;
+        }
+        
+        .alert-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .alert-item.danger .alert-icon {
+            background: var(--danger-red);
+            color: white;
+        }
+        
+        .alert-item.warning .alert-icon {
+            background: var(--warning-yellow);
+            color: white;
+        }
+        
+        .alert-item.info .alert-icon {
+            background: var(--info-cyan);
+            color: white;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .alert-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+        
+        .alert-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        /* Full Width Cards */
+        .full-width-card {
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        
+        .data-table thead {
+            background: var(--bg-secondary);
+        }
+        
+        .data-table th {
+            padding: var(--spacing-md);
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .data-table td {
+            padding: var(--spacing-md);
+            border-top: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        
+        .data-table tbody tr {
+            transition: background 0.2s ease;
+        }
+        
+        .data-table tbody tr:hover {
+            background: var(--bg-secondary);
+        }
+        
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge.success {
+            background: #d1fae5;
+            color: var(--success-green);
+        }
+        
+        .status-badge.warning {
+            background: #fef3c7;
+            color: var(--warning-yellow);
+        }
+        
+        .status-badge.danger {
+            background: #fee2e2;
+            color: var(--danger-red);
+        }
+        
+        .status-badge.info {
+            background: #dbeafe;
+            color: var(--primary-blue);
+        }
+        
+        .status-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+        
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--border-radius-sm);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .theme-toggle:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .search-bar {
+                width: 200px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: var(--border-radius-sm);
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mt-1 { margin-top: var(--spacing-sm); }
+        .mt-2 { margin-top: var(--spacing-md); }
+        .mt-3 { margin-top: var(--spacing-lg); }
+        .mb-1 { margin-bottom: var(--spacing-sm); }
+        .mb-2 { margin-bottom: var(--spacing-md); }
+        .mb-3 { margin-bottom: var(--spacing-lg); }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-1 { gap: var(--spacing-sm); }
+        .gap-2 { gap: var(--spacing-md); }
+    </style>
+</head>
+<body>
+    <!-- ====================
+         APP CONTAINER
+         ==================== -->
+    <div class="app-container">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar" id="sidebar">
+            <!-- Logo Header -->
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i class="fas fa-water"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Varuna</h1>
+                        <p>CWC Monitoring</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#map" class="nav-item" data-page="map">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <span>Map View</span>
+                    </a>
+                    <a href="#devices" class="nav-item" data-page="devices">
+                        <i class="fas fa-microchip"></i>
+                        <span>Devices</span>
+                        <span class="nav-badge">42</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Monitoring</div>
+                    <a href="#alerts" class="nav-item" data-page="alerts">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Alerts</span>
+                        <span class="nav-badge">3</span>
+                    </a>
+                    <a href="#analytics" class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#reports" class="nav-item" data-page="reports">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="#settings" class="nav-item" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#users" class="nav-item" data-page="users">
+                        <i class="fas fa-users"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="#sms" class="nav-item" data-page="sms">
+                        <i class="fas fa-sms"></i>
+                        <span>SMS Commands</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <!-- Search Bar -->
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search devices, locations, alerts..." id="searchInput">
+                </div>
+                
+                <!-- Top Bar Actions -->
+                <div class="topbar-actions">
+                    <!-- Theme Toggle -->
+                    <button class="icon-button theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    
+                    <!-- Notifications -->
+                    <button class="icon-button" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-dot"></span>
+                    </button>
+                    
+                    <!-- Help -->
+                    <button class="icon-button" title="Help">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                    
+                    <!-- User Profile -->
+                    <div class="user-profile">
+                        <div class="user-avatar">AK</div>
+                        <div class="user-info">
+                            <h4>Admin User</h4>
+                            <p>CWC Officer</p>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: var(--text-tertiary);"></i>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- CONTENT AREA -->
+            <div class="content-area" id="contentArea">
+                
+                <!-- PAGE HEADER -->
+                <div class="page-header">
+                    <h1 class="page-title">Real-Time Water Level Monitoring</h1>
+                    <p class="page-subtitle">Last updated: <span id="lastUpdate">Just now</span> • All systems operational</p>
+                    
+                    <div class="header-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </button>
+                        <button class="btn btn-outline">
+                            <i class="fas fa-filter"></i>
+                            Filter
+                        </button>
+                        <button class="btn btn-outline">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- STATS GRID -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Total Devices</div>
+                            </div>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalDevices">42</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>3 new this month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Online Devices</div>
+                            </div>
+                            <div class="stat-icon green">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="onlineDevices">39</div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>92.8% uptime</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Active Alerts</div>
+                            </div>
+                            <div class="stat-icon red">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="activeAlerts">3</div>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>2 critical</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-label">Avg Water Level</div>
+                            </div>
+                            <div class="stat-icon yellow">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="avgWaterLevel">87cm</div>
+                        <div class="stat-change neutral">
+                            <i class="fas fa-minus"></i>
+                            <span>Stable (24h)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- MAIN GRID -->
+                <div class="main-grid">
+                    
+                    <!-- MAP CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Device Locations
+                            </h3>
+                            <div class="card-actions">
+                                <button class="icon-button" title="Fullscreen">
+                                    <i class="fas fa-expand"></i>
+                                </button>
+                                <button class="icon-button" title="Settings">
+                                    <i class="fas fa-cog"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <!-- Map will be initialized here -->
+                            <div id="map"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- DEVICE LIST CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-list"></i>
+                                Recent Readings
+                            </h3>
+                            <div class="card-actions">
+                                <button class="icon-button" title="Refresh">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="device-list" id="deviceList">
+                                <!-- Device items will be dynamically populated -->
+                                <div class="device-item">
+                                    <div class="device-status online"></div>
+                                    <div class="device-info">
+                                        <div class="device-name">CWC-RJ-001</div>
+                                        <div class="device-location">Rajasthan, Jaipur</div>
+                                    </div>
+                                    <div class="device-level">87cm</div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="device-status warning"></div>
+                                    <div class="device-info">
+                                        <div class="device-name">CWC-UP-045</div>
+                                        <div class="device-location">Uttar Pradesh, Lucknow</div>
+                                    </div>
+                                    <div class="device-level">142cm</div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="device-status online"></div>
+                                    <div class="device-info">
+                                        <div class="device-name">CWC-BR-127</div>
+                                        <div class="device-location">Bihar, Patna</div>
+                                    </div>
+                                    <div class="device-level">93cm</div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="device-status offline"></div>
+                                    <div class="device-info">
+                                        <div class="device-name">CWC-AS-032</div>
+                                        <div class="device-location">Assam, Guwahati</div>
+                                    </div>
+                                    <div class="device-level">--</div>
+                                </div>
+                                
+                                <div class="device-item">
+                                    <div class="device-status online"></div>
+                                    <div class="device-info">
+                                        <div class="device-name">CWC-MH-089</div>
+                                        <div class="device-location">Maharashtra, Mumbai</div>
+                                    </div>
+                                    <div class="device-level">76cm</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- FULL WIDTH CARDS ROW -->
+                <div class="main-grid">
+                    
+                    <!-- WATER LEVEL TREND CHART -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-chart-area"></i>
+                                Water Level Trend (24 Hours)
+                            </h3>
+                            <div class="card-actions">
+                                <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">
+                                    24H
+                                </button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
+                                    7D
+                                </button>
+                                <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
+                                    30D
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="waterLevelChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ALERTS CARD -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="fas fa-bell"></i>
+                                Recent Alerts
+                            </h3>
+                            <div class="card-actions">
+                                <button class="icon-button" title="Mark all read">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert-item danger">
+                                <div class="alert-icon">
+                                    <i class="fas fa-exclamation"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">CRITICAL: Water Level Rising</div>
+                                    <div class="alert-message">CWC-UP-045: Level at 142cm (+12cm/15min)</div>
+                                    <div class="alert-time">
+                                        <i class="far fa-clock"></i> 5 minutes ago
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert-item warning">
+                                <div class="alert-icon">
+                                    <i class="fas fa-battery-quarter"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Low Battery Warning</div>
+                                    <div class="alert-message">CWC-RJ-001: Battery at 18% - Solar charging active</div>
+                                    <div class="alert-time">
+                                        <i class="far fa-clock"></i> 23 minutes ago
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert-item info">
+                                <div class="alert-icon">
+                                    <i class="fas fa-info"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-title">Device Back Online</div>
+                                    <div class="alert-message">CWC-BR-127: Reconnected after maintenance</div>
+                                    <div class="alert-time">
+                                        <i class="far fa-clock"></i> 1 hour ago
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- DEVICE STATUS TABLE -->
+                <div class="card full-width-card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-table"></i>
+                            All Devices Status
+                        </h3>
+                        <div class="card-actions">
+                            <button class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;">
+                                <i class="fas fa-download"></i>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Device ID</th>
+                                    <th>Location</th>
+                                    <th>Water Level</th>
+                                    <th>Status</th>
+                                    <th>Battery</th>
+                                    <th>Signal</th>
+                                    <th>Last Update</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceTable">
+                                <tr>
+                                    <td><strong>CWC-RJ-001</strong></td>
+                                    <td>Rajasthan, Jaipur</td>
+                                    <td><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">87.3 cm</span></td>
+                                    <td><span class="status-badge success">Online</span></td>
+                                    <td>78%</td>
+                                    <td>-67 dBm</td>
+                                    <td>2 min ago</td>
+                                    <td>
+                                        <button class="icon-button" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CWC-UP-045</strong></td>
+                                    <td>Uttar Pradesh, Lucknow</td>
+                                    <td><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">142.8 cm</span></td>
+                                    <td><span class="status-badge danger">Alert</span></td>
+                                    <td>92%</td>
+                                    <td>-71 dBm</td>
+                                    <td>1 min ago</td>
+                                    <td>
+                                        <button class="icon-button" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CWC-BR-127</strong></td>
+                                    <td>Bihar, Patna</td>
+                                    <td><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">93.1 cm</span></td>
+                                    <td><span class="status-badge success">Online</span></td>
+                                    <td>65%</td>
+                                    <td>-82 dBm</td>
+                                    <td>5 min ago</td>
+                                    <td>
+                                        <button class="icon-button" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CWC-AS-032</strong></td>
+                                    <td>Assam, Guwahati</td>
+                                    <td><span style="color: var(--text-tertiary);">--</span></td>
+                                    <td><span class="status-badge warning">Offline</span></td>
+                                    <td>--</td>
+                                    <td>--</td>
+                                    <td>3 hours ago</td>
+                                    <td>
+                                        <button class="icon-button" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>CWC-MH-089</strong></td>
+                                    <td>Maharashtra, Mumbai</td>
+                                    <td><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">76.4 cm</span></td>
+                                    <td><span class="status-badge success">Online</span></td>
+                                    <td>88%</td>
+                                    <td>-59 dBm</td>
+                                    <td>Just now</td>
+                                    <td>
+                                        <button class="icon-button" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </main>
+        
+    </div>
+    
+    <!-- ====================
+         JAVASCRIPT
+         ==================== -->
+    <script>
+        // ==========================================
+        // GLOBAL CONFIGURATION
+        // ==========================================
+        const CONFIG = {
+            apiEndpoint: 'https://api.cwc.gov.in/v1',
+            refreshInterval: 60000, // 1 minute
+            mapCenter: [20.5937, 78.9629], // India center
+            mapZoom: 5
+        };
+        
+        // ==========================================
+        // THEME TOGGLE
+        // ==========================================
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or default to 'light' mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+        
+        themeToggle.addEventListener('click', function() {
+            let theme = htmlElement.getAttribute('data-theme');
+            let newTheme = theme === 'light' ? 'dark' : 'light';
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            if (theme === 'dark') {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        }
+        
+        // ==========================================
+        // MAP INITIALIZATION (Leaflet.js)
+        // ==========================================
+        let map;
+        
+        function initMap() {
+            // Initialize map
+            map = L.map('map').setView(CONFIG.mapCenter, CONFIG.mapZoom);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            }).addTo(map);
+            
+            // Sample device locations (Replace with actual API data)
+            const devices = [
+                { id: 'CWC-RJ-001', lat: 26.9124, lon: 75.7873, level: 87, status: 'online' },
+                { id: 'CWC-UP-045', lat: 26.8467, lon: 80.9462, level: 142, status: 'alert' },
+                { id: 'CWC-BR-127', lat: 25.5941, lon: 85.1376, level: 93, status: 'online' },
+                { id: 'CWC-AS-032', lat: 26.1445, lon: 91.7362, level: 0, status: 'offline' },
+                { id: 'CWC-MH-089', lat: 19.0760, lon: 72.8777, level: 76, status: 'online' }
+            ];
+            
+            // Add markers for each device
+            devices.forEach(device => {
+                const iconColor = device.status === 'alert' ? 'red' : 
+                                 device.status === 'offline' ? 'gray' : 'green';
+                
+                const marker = L.circleMarker([device.lat, device.lon], {
+                    radius: 8,
+                    fillColor: iconColor,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(map);
+                
+                marker.bindPopup(`
+                    <div style="font-family: Inter, sans-serif;">
+                        <strong>${device.id}</strong><br>
+                        Water Level: ${device.level}cm<br>
+                        Status: <span style="color: ${iconColor};">${device.status.toUpperCase()}</span>
+                    </div>
+                `);
+            });
+        }
+        
+        // Initialize map when page loads
+        window.addEventListener('load', initMap);
+        
+        // ==========================================
+        // WATER LEVEL CHART (Chart.js)
+        // ==========================================
+        let waterLevelChart;
+        
+        function initChart() {
+            const ctx = document.getElementById('waterLevelChart').getContext('2d');
+            
+            // Sample data (Replace with actual API data)
+            const labels = [];
+            const data = [];
+            
+            // Generate 24 hours of sample data
+            for (let i = 23; i >= 0; i--) {
+                const date = new Date();
+                date.setHours(date.getHours() - i);
+                labels.push(date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+                data.push(Math.floor(Math.random() * 30) + 70); // Random data between 70-100
+            }
+            
+            waterLevelChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Water Level (cm)',
+                        data: data,
+                        borderColor: 'rgb(37, 99, 235)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 0,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize chart when page loads
+        window.addEventListener('load', initChart);
+        
+        // ==========================================
+        // NAVIGATION HANDLING
+        // ==========================================
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                navItems.forEach(nav => nav.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Get page name from data attribute
+                const page = this.getAttribute('data-page');
+                
+                // TODO: Load page content dynamically
+                console.log('Navigate to:', page);
+                
+                // You can implement AJAX loading here
+                // loadPageContent(page);
+            });
+        });
+        
+        // ==========================================
+        // SEARCH FUNCTIONALITY
+        // ==========================================
+        const searchInput = document.getElementById('searchInput');
+        
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            
+            // TODO: Implement search logic
+            console.log('Search query:', query);
+            
+            // Filter devices, alerts, etc.
+            // filterDevices(query);
+        });
+        
+        // ==========================================
+        // AUTO-REFRESH DATA
+        // ==========================================
+        function refreshData() {
+            // TODO: Fetch latest data from API
+            console.log('Refreshing data...');
+            
+            // Update last update time
+            document.getElementById('lastUpdate').textContent = 'Just now';
+            
+            // Example API call structure:
+            /*
+            fetch(`${CONFIG.apiEndpoint}/devices`)
+                .then(response => response.json())
+                .then(data => {
+                    updateDashboard(data);
+                })
+                .catch(error => console.error('Error:', error));
+            */
+        }
+        
+        // Set up auto-refresh
+        setInterval(refreshData, CONFIG.refreshInterval);
+        
+        // ==========================================
+        // UTILITY FUNCTIONS FOR FUTURE INTEGRATION
+        // ==========================================
+        
+        // Function to update device list
+        function updateDeviceList(devices) {
+            const deviceList = document.getElementById('deviceList');
+            deviceList.innerHTML = '';
+            
+            devices.forEach(device => {
+                const deviceItem = document.createElement('div');
+                deviceItem.className = 'device-item';
+                deviceItem.innerHTML = `
+                    <div class="device-status ${device.status}"></div>
+                    <div class="device-info">
+                        <div class="device-name">${device.id}</div>
+                        <div class="device-location">${device.location}</div>
+                    </div>
+                    <div class="device-level">${device.level}cm</div>
+                `;
+                deviceList.appendChild(deviceItem);
+            });
+        }
+        
+        // Function to update stats
+        function updateStats(stats) {
+            document.getElementById('totalDevices').textContent = stats.total;
+            document.getElementById('onlineDevices').textContent = stats.online;
+            document.getElementById('activeAlerts').textContent = stats.alerts;
+            document.getElementById('avgWaterLevel').textContent = stats.avgLevel + 'cm';
+        }
+        
+        // Function to send SMS command
+        function sendSMSCommand(deviceId, command) {
+            // TODO: Implement SMS command sending
+            console.log(`Sending command "${command}" to ${deviceId}`);
+            
+            /*
+            fetch(`${CONFIG.apiEndpoint}/sms/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ deviceId, command })
+            })
+            .then(response => response.json())
+            .then(data => console.log('Success:', data))
+            .catch(error => console.error('Error:', error));
+            */
+        }
+        
+        // Function to export data
+        function exportData(format = 'csv') {
+            // TODO: Implement data export
+            console.log(`Exporting data as ${format}`);
+        }
+        
+        // ==========================================
+        // MOBILE SIDEBAR TOGGLE
+        // ==========================================
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('mobile-open');
+        }
+        
+        // Add mobile menu button (you can add this to HTML if needed)
+        if (window.innerWidth <= 768) {
+            const mobileMenuBtn = document.createElement('button');
+            mobileMenuBtn.className = 'icon-button';
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+            mobileMenuBtn.style.marginRight = 'auto';
+            mobileMenuBtn.onclick = toggleSidebar;
+            document.querySelector('.topbar').prepend(mobileMenuBtn);
+        }
+        
+        // ==========================================
+        // CONSOLE MESSAGE
+        // ==========================================
+        console.log('%c🌊 Varuna Dashboard v1.0', 'color: #2563eb; font-size: 20px; font-weight: bold;');
+        console.log('%cReady for backend integration', 'color: #10b981; font-size: 14px;');
+        console.log('%cAPI Endpoint:', CONFIG.apiEndpoint);
+    </script>
+</body>
+</html>
