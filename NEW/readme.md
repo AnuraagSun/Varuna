@@ -38,6 +38,17 @@ AND THE LENGTH A
 
 NOW THE PROBLEM IS HOW DO I KEEP THE TENSION BETWEEN THE X AND Z CONSTANT SO THT 
 THE DISTANCE X AND Z IS PERFECTLY STRAINGT?
+Corners (Vertices)
+The corners are the points where the lines meet. In this diagram, they are labeled with letters on the outside:
 
+x (bottom-left corner)
+y (top-left corner)
+z (top-right corner)
+Edges (Sides)
+The edges are the straight lines connecting the corners. They are labeled with letters placed next to the lines:
+
+a (the diagonal line connecting corners x and z)
+b (the top horizontal line connecting corners y and z)
+c (the vertical line connecting corners x and y)
 DO NOTE FOR THE X AND Z DISTANCE I AM USING A FISHING NET ROPE 
 AND DO NOTE THT THE XY EDGE IS THE PERPENDICULAR FROM THE ANCHOR THUS ALLOWING US TO ACCURATELY CALCULATE THE ANGLE OF DEVIATION THUS FURHTER ALLOWING US TO FIND OUT THE LENGHT OF XY
