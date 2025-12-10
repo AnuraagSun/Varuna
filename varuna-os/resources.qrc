@@ -1,0 +1,30 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>qml/Main.qml</file>
+        <file>qml/Theme.qml</file>
+        <file>qml/components/BootScreen.qml</file>
+        <file>qml/components/StatusBadge.qml</file>
+        <file>qml/components/Header.qml</file>
+        <file>qml/components/NavigationBar.qml</file>
+        <file>qml/components/ScreenContainer.qml</file>
+        <file>qml/components/InfoCard.qml</file>
+        <file>qml/components/HealthItem.qml</file>
+        <file>qml/components/DataTable.qml</file>
+        <file>qml/components/CustomButton.qml</file>
+        <file>qml/components/CustomProgressBar.qml</file>
+        <file>qml/components/LogLine.qml</file>
+        <file>qml/components/SectionTitle.qml</file>
+        <file>qml/components/ControlInput.qml</file>
+        <file>qml/components/WarningBanner.qml</file>
+        <file>qml/components/SensorCard.qml</file>
+        <file>qml/screens/OverviewScreen.qml</file>
+        <file>qml/screens/SensorsScreen.qml</file>
+        <file>qml/screens/HistoryScreen.qml</file>
+        <file>qml/screens/LogsScreen.qml</file>
+        <file>qml/screens/SystemScreen.qml</file>
+        <file>qml/screens/CalibrateScreen.qml</file>
+        <file>qml/screens/ExportScreen.qml</file>
+        <file>qml/screens/TerminalScreen.qml</file>
+    </qresource>
+</RCC>

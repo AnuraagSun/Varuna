@@ -1,0 +1,13 @@
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║ FILE: qmldir                                                               ║
+# ║ LOCATION: varuna-os/qml/qmldir                                             ║
+# ║ PURPOSE: QML module definition file                                        ║
+# ║ FIXED: Proper singleton and component registration                        ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+module Varuna
+singleton Theme 1.0 Theme.qml
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║ END OF FILE: qmldir                                                        ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
