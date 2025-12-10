@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VARUNA Water Monitoring System - Local Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a1929;
+            --secondary-bg: #1a2332;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-yellow: #f59e0b;
+            --accent-red: #ef4444;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: var(--secondary-bg);
+            padding: 1rem 2rem;
+            border-bottom: 2px solid var(--accent-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            color: var(--accent-blue);
+        }
+
+        .device-info h1 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .device-info p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .mode-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            animation: pulse 2s infinite;
+        }
+
+        .mode-normal { background: var(--accent-green); color: white; }
+        .mode-flood { background: var(--accent-red); color: white; }
+        .mode-lowpower { background: var(--accent-yellow); color: black; }
+        .mode-maintenance { background: #6366f1; color: white; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Main Container */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto auto;
+            gap: 1.5rem;
+            padding: 2rem;
+            max-width: 1920px;
+            margin: 0 auto;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        /* Water Level Display (Hero Card) */
+        .hero-card {
+            grid-column: 1 / 3;
+            grid-row: 1;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%);
+            border: 2px solid var(--accent-blue);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .water-level-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .level-value {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+            text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+
+        .level-unit {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .level-visual {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            border: 3px solid var(--accent-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .water-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.6) 100%);
+            border-radius: 0 0 50% 50%;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .rate-of-change {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .rate-item {
+            text-align: center;
+        }
+
+        .rate-arrow {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .rising { color: var(--accent-red); }
+        .falling { color: var(--accent-green); }
+        .stable { color: var(--accent-yellow); }
+
+        /* Geometric Visualization */
+        .geometric-viz {
+            grid-column: 3;
+            grid-row: 1 / 3;
+        }
+
+        .triangle-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin: 1rem 0;
+        }
+
+        .triangle-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .point-label {
+            font-size: 1rem;
+            font-weight: bold;
+            fill: var(--accent-blue);
+        }
+
+        .edge-label {
+            font-size: 0.9rem;
+            fill: var(--accent-yellow);
+        }
+
+        .geometric-data {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .geometric-data div {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Sensor Cards */
+        .sensor-card {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent-green);
+            transition: transform 0.2s;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .sensor-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            animation: blink 1.5s infinite;
+        }
+
+        .sensor-ok { background: var(--accent-green); }
+        .sensor-warning { background: var(--accent-yellow); }
+        .sensor-error { background: var(--accent-red); }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .sensor-reading {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin: 1rem 0;
+        }
+
+        .sensor-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Power System */
+        .power-card {
+            grid-column: 1 / 3;
+        }
+
+        .power-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .power-source {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .power-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .battery-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .battery-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-green) 0%, var(--accent-blue) 100%);
+            width: 78%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: width 0.5s ease;
+        }
+
+        .battery-fill.low {
+            background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-yellow) 100%);
+        }
+
+        /* Communication Status */
+        .signal-bars {
+            display: flex;
+            gap: 3px;
+            align-items: flex-end;
+        }
+
+        .signal-bar {
+            width: 8px;
+            background: var(--border-color);
+            transition: background 0.3s;
+        }
+
+        .signal-bar.active {
+            background: var(--accent-green);
+        }
+
+        .signal-bar:nth-child(1) { height: 10px; }
+        .signal-bar:nth-child(2) { height: 15px; }
+        .signal-bar:nth-child(3) { height: 20px; }
+        .signal-bar:nth-child(4) { height: 25px; }
+        .signal-bar:nth-child(5) { height: 30px; }
+
+        /* Alert Log */
+        .alert-log {
+            grid-column: 1 / 4;
+        }
+
+        .alert-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .alert-info { 
+            border-color: var(--accent-blue); 
+            background: rgba(59, 130, 246, 0.1); 
+        }
+
+        .alert-warning { 
+            border-color: var(--accent-yellow); 
+            background: rgba(245, 158, 11, 0.1); 
+        }
+
+        .alert-danger { 
+            border-color: var(--accent-red); 
+            background: rgba(239, 68, 68, 0.1); 
+        }
+
+        /* Tab System */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab.active {
+            color: var(--accent-blue);
+            border-bottom-color: var(--accent-blue);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Terminal */
+        .terminal {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .terminal-prompt {
+            color: #0f0;
+        }
+
+        .terminal-output {
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .terminal-input {
+            display: flex;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .terminal-input input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            padding: 0.5rem;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--accent-yellow);
+            color: black;
+        }
+
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Settings Form */
+        .settings-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* GPS Map Placeholder */
+        .map-container {
+            width: 100%;
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .map-marker {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-red);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            position: absolute;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: rotate(-45deg) translateY(0); }
+            50% { transform: rotate(-45deg) translateY(-10px); }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-blue);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2563eb;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .hero-card {
+                grid-column: 1 / 3;
+            }
+
+            .geometric-viz {
+                grid-column: 1 / 3;
+                grid-row: auto;
+            }
+
+            .power-card {
+                grid-column: 1 / 3;
+            }
+
+            .alert-log {
+                grid-column: 1 / 3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .status-indicators {
+                flex-wrap: wrap;
+            }
+
+            .hero-card,
+            .geometric-viz,
+            .power-card,
+            .alert-log {
+                grid-column: 1;
+            }
+
+            .settings-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Timestamp */
+        .timestamp {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* System Health Indicator */
+        .health-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .health-good {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .health-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-yellow);
+        }
+
+        .health-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="logo-section">
+            <div class="logo">🌊</div>
+            <div class="device-info">
+                <h1>VARUNA MONITORING SYSTEM</h1>
+                <p>Device ID: CWC-RJ-001 | Local Interface v1.0.3</p>
+            </div>
+        </div>
+
+        <div class="status-indicators">
+            <div class="status-item">
+                <span class="status-value mode-badge mode-normal" id="currentMode">NORMAL</span>
+                <span class="status-label">Operating Mode</span>
+            </div>
+
+            <div class="status-item">
+                <span class="status-value" style="color: var(--accent-green);">●</span>
+                <span class="status-label">System Health</span>
+            </div>
+
+            <div class="status-item">
+                <span class="status-value" style="color: var(--accent-blue);">15:42:37</span>
+                <span class="status-label">Local Time</span>
+            </div>
+
+            <div class="status-item">
+                <span class="status-value">342h</span>
+                <span class="status-label">Uptime</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        
+        <!-- HERO CARD - WATER LEVEL -->
+        <div class="card hero-card">
+            <div class="card-header">
+                <h2 class="card-title">💧 CURRENT WATER LEVEL</h2>
+                <span class="timestamp">Last updated: 15:42:00 | 15-Jan-2024</span>
+            </div>
+
+            <div class="water-level-display">
+                <div>
+                    <div class="level-value">
+                        <span id="waterLevel">87.6</span>
+                        <span class="level-unit">cm</span>
+                    </div>
+                    <div style="margin-top: 1rem; color: var(--text-secondary);">
+                        <p>Danger Level: 150 cm</p>
+                        <p>Warning Level: 120 cm</p>
+                        <p>Current Status: <span style="color: var(--accent-green); font-weight: bold;">SAFE</span></p>
+                    </div>
+                </div>
+
+                <div class="level-visual">
+                    <div class="water-wave"></div>
+                </div>
+            </div>
+
+            <div class="rate-of-change">
+                <div class="rate-item">
+                    <span class="rate-arrow rising">↑</span>
+                    <span style="font-size: 1.2rem; font-weight: bold;">+2.3 cm/hr</span>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Rate of Change</p>
+                </div>
+                <div class="rate-item">
+                    <span style="font-size: 1.2rem; font-weight: bold;">+12 cm</span>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Change (Last 15 min)</p>
+                </div>
+                <div class="rate-item">
+                    <span style="font-size: 1.2rem; font-weight: bold;">75.4 cm</span>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">24h Average</p>
+                </div>
+                <div class="rate-item">
+                    <span style="font-size: 1.2rem; font-weight: bold;">92.1 cm</span>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;">24h Peak</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- GEOMETRIC VISUALIZATION -->
+        <div class="card geometric-viz">
+            <div class="card-header">
+                <h2 class="card-title">📐 BUOY GEOMETRY</h2>
+                <span class="health-indicator health-good">
+                    <span class="sensor-status sensor-ok"></span>
+                    TRACKING
+                </span>
+            </div>
+
+            <div class="triangle-container">
+                <svg class="triangle-svg" viewBox="0 0 300 300">
+                    <!-- Define gradient for water -->
+                    <defs>
+                        <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.6" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Water level rectangle (X to Y) -->
+                    <rect x="20" y="100" width="10" height="150" fill="url(#waterGradient)" stroke="var(--accent-blue)" stroke-width="2"/>
+                    
+                    <!-- Triangle edges -->
+                    <line x1="50" y1="250" x2="50" y2="100" stroke="var(--accent-blue)" stroke-width="3" stroke-dasharray="5,5"/>
+                    <!-- Edge C (X to Y - vertical) -->
+                    
+                    <line x1="50" y1="100" x2="250" y2="100" stroke="var(--accent-yellow)" stroke-width="2"/>
+                    <!-- Edge B (Y to Z - horizontal) -->
+                    
+                    <line x1="50" y1="250" x2="250" y2="100" stroke="var(--accent-green)" stroke-width="3"/>
+                    <!-- Edge A (X to Z - diagonal/rope) -->
+
+                    <!-- Points -->
+                    <circle cx="50" cy="250" r="8" fill="var(--accent-red)"/>
+                    <!-- Point X (Anchor) -->
+                    <circle cx="50" cy="100" r="6" fill="var(--accent-blue)"/>
+                    <!-- Point Y (Water surface) -->
+                    <circle cx="250" cy="100" r="8" fill="var(--accent-green)" stroke="#fff" stroke-width="2"/>
+                    <!-- Point Z (Buoy) -->
+
+                    <!-- Labels -->
+                    <text x="50" y="275" class="point-label" text-anchor="middle">X (Anchor)</text>
+                    <text x="50" y="85" class="point-label" text-anchor="middle">Y (Surface)</text>
+                    <text x="250" y="85" class="point-label" text-anchor="middle">Z (Buoy)</text>
+
+                    <!-- Edge labels -->
+                    <text x="150" y="85" class="edge-label" text-anchor="middle">b (current drift)</text>
+                    <text x="30" y="175" class="edge-label" text-anchor="middle">c (depth)</text>
+                    <text x="150" y="185" class="edge-label" text-anchor="middle">a = 1.5m (rope)</text>
+
+                    <!-- Angle indicator -->
+                    <path d="M 50 250 L 80 250 A 30 30 0 0 1 70 220 Z" fill="rgba(245, 158, 11, 0.3)" stroke="var(--accent-yellow)" stroke-width="1"/>
+                    <text x="85" y="245" class="edge-label" font-size="0.8rem">θ = 32.5°</text>
+                </svg>
+            </div>
+
+            <div class="geometric-data">
+                <div>
+                    <span>Rope Length (a):</span>
+                    <span style="color: var(--accent-green); font-weight: bold;">1.50 m</span>
+                </div>
+                <div>
+                    <span>Pitch Angle (θ):</span>
+                    <span style="color: var(--accent-yellow); font-weight: bold;">32.5°</span>
+                </div>
+                <div>
+                    <span>Calculated Depth (c):</span>
+                    <span style="color: var(--accent-blue); font-weight: bold;">87.3 cm</span>
+                </div>
+                <div>
+                    <span>Current Drift (b):</span>
+                    <span style="color: var(--text-secondary); font-weight: bold;">~45 cm</span>
+                </div>
+                <div>
+                    <span>Formula:</span>
+                    <span style="color: var(--text-secondary); font-style: italic;">c = a × sin(θ)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SENSOR 1: MPU-6050 (IMU) -->
+        <div class="card sensor-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    🎯 MPU-6050 (IMU)
+                    <span class="sensor-status sensor-ok"></span>
+                </h2>
+                <span style="color: var(--accent-green); font-weight: bold;">PRIMARY</span>
+            </div>
+
+            <div class="sensor-reading">
+                <span id="mpuLevel">87.3</span>
+                <span style="font-size: 1.2rem; color: var(--text-secondary);">cm</span>
+            </div>
+
+            <div class="sensor-details">
+                <div>Pitch Angle: <strong>32.5°</strong></div>
+                <div>Roll Angle: <strong>1.2°</strong></div>
+                <div>Samples: <strong>10/10</strong></div>
+                <div>Variance: <strong>0.8°</strong></div>
+                <div>Weight: <strong>50%</strong></div>
+                <div>Status: <strong style="color: var(--accent-green);">STABLE</strong></div>
+            </div>
+
+            <div class="controls" style="margin-top: 1rem;">
+                <button class="btn btn-primary">Calibrate</button>
+            </div>
+        </div>
+
+        <!-- SENSOR 2: HC-SR04 (Ultrasonic) -->
+        <div class="card sensor-card" style="border-left-color: var(--accent-yellow);">
+            <div class="card-header">
+                <h2 class="card-title">
+                    📡 HC-SR04 (Ultrasonic)
+                    <span class="sensor-status sensor-ok"></span>
+                </h2>
+                <span style="color: var(--accent-yellow); font-weight: bold;">SECONDARY</span>
+            </div>
+
+            <div class="sensor-reading" style="color: var(--accent-yellow);">
+                <span id="usLevel">87.3</span>
+                <span style="font-size: 1.2rem; color: var(--text-secondary);">cm</span>
+            </div>
+
+            <div class="sensor-details">
+                <div>Distance: <strong>112.7 cm</strong></div>
+                <div>Post Height: <strong>200 cm</strong></div>
+                <div>Samples: <strong>5/5</strong></div>
+                <div>Echo Time: <strong>6.5 ms</strong></div>
+                <div>Weight: <strong>30%</strong></div>
+                <div>Status: <strong style="color: var(--accent-green);">ACTIVE</strong></div>
+            </div>
+
+            <div class="controls" style="margin-top: 1rem;">
+                <button class="btn btn-warning">Test Reading</button>
+            </div>
+        </div>
+
+        <!-- SENSOR 3: MS5837 (Pressure) -->
+        <div class="card sensor-card" style="border-left-color: var(--accent-blue);">
+            <div class="card-header">
+                <h2 class="card-title">
+                    🌡️ MS5837 (Pressure)
+                    <span class="sensor-status sensor-ok"></span>
+                </h2>
+                <span style="color: var(--accent-blue); font-weight: bold;">TERTIARY</span>
+            </div>
+
+            <div class="sensor-reading" style="color: var(--accent-blue);">
+                <span id="psLevel">88.1</span>
+                <span style="font-size: 1.2rem; color: var(--text-secondary);">cm</span>
+            </div>
+
+            <div class="sensor-details">
+                <div>Pressure: <strong>1023.4 mbar</strong></div>
+                <div>Temperature: <strong>23.5°C</strong></div>
+                <div>Depth: <strong>88.1 cm</strong></div>
+                <div>Submerged: <strong>YES</strong></div>
+                <div>Weight: <strong>20%</strong></div>
+                <div>Status: <strong style="color: var(--accent-green);">WATERPROOF OK</strong></div>
+            </div>
+
+            <div class="controls" style="margin-top: 1rem;">
+                <button class="btn btn-primary">Check Seal</button>
+            </div>
+        </div>
+
+        <!-- POWER SYSTEM -->
+        <div class="card power-card">
+            <div class="card-header">
+                <h2 class="card-title">🔋 POWER SYSTEM</h2>
+                <span class="health-indicator health-good">
+                    <span class="sensor-status sensor-ok"></span>
+                    CHARGING
+                </span>
+            </div>
+
+            <div class="battery-bar">
+                <div class="battery-fill" id="batteryFill">
+                    78% | 12.4V
+                </div>
+            </div>
+
+            <div class="power-grid">
+                <div class="power-source">
+                    <div class="power-icon">☀️</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent-yellow);">8.5W</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Solar Panel</div>
+                    <div style="color: var(--accent-green); font-size: 0.75rem;">Active</div>
+                </div>
+
+                <div class="power-source">
+                    <div class="power-icon">💨</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent-blue);">3.2W</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Wind Turbine</div>
+                    <div style="color: var(--accent-green); font-size: 0.75rem;">Active</div>
+                </div>
+
+                <div class="power-source">
+                    <div class="power-icon">⚡</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent-green);">11.7W</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Total Input</div>
+                    <div style="color: var(--accent-green); font-size: 0.75rem;">Net: +9.2W</div>
+                </div>
+
+                <div class="power-source">
+                    <div class="power-icon">🔌</div>
+                    <div style="font-size: 1.3rem; font-weight: bold; color: var(--text-primary);">2.5W</div>
+                    <div style="color: var(--text-secondary); font-size: 0.85rem;">Consumption</div>
+                    <div style="color: var(--text-secondary); font-size: 0.75rem;">Normal Mode</div>
+                </div>
+            </div>
+
+            <div class="sensor-details" style="margin-top: 1rem; grid-template-columns: repeat(4, 1fr);">
+                <div>Battery: <strong>LiFePO4 20Ah</strong></div>
+                <div>Remaining: <strong>15.6 Ah</strong></div>
+                <div>Autonomy: <strong>4.2 days</strong></div>
+                <div>Health: <strong style="color: var(--accent-green);">EXCELLENT</strong></div>
+            </div>
+        </div>
+
+        <!-- COMMUNICATION STATUS -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📶 COMMUNICATION</h2>
+                <div class="signal-bars">
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar active"></div>
+                    <div class="signal-bar"></div>
+                </div>
+            </div>
+
+            <div class="sensor-details">
+                <div>Network: <strong>4G LTE</strong></div>
+                <div>Operator: <strong>BSNL</strong></div>
+                <div>Signal: <strong>-67 dBm</strong></div>
+                <div>Quality: <strong>GOOD</strong></div>
+                <div>Last GPRS: <strong>2 min ago</strong></div>
+                <div>Last SMS: <strong>14:30</strong></div>
+                <div>Data Sent: <strong>2.4 MB</strong></div>
+                <div>Data Queue: <strong>0 records</strong></div>
+            </div>
+
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 0, 0, 0.3); border-radius: 8px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>GPS Location:</span>
+                    <span style="color: var(--accent-green); font-weight: bold;">LOCKED</span>
+                </div>
+                <div style="font-family: monospace; color: var(--text-secondary);">
+                    26.9124°N, 75.7873°E
+                </div>
+                <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                    Accuracy: ±3m | Satellites: 8
+                </div>
+            </div>
+
+            <div class="controls" style="margin-top: 1rem;">
+                <button class="btn btn-primary">Force Transmit</button>
+                <button class="btn btn-success">Test SMS</button>
+            </div>
+        </div>
+
+        <!-- ALERT LOG -->
+        <div class="card alert-log">
+            <div class="card-header">
+                <h2 class="card-title">🔔 ALERT & EVENT LOG</h2>
+                <button class="btn btn-primary">Clear All</button>
+            </div>
+
+            <div class="alert-item alert-info">
+                <div>
+                    <strong>INFO:</strong> Hourly reading transmitted successfully
+                    <div class="timestamp">15:00:12 | 15-Jan-2024</div>
+                </div>
+                <span>✓</span>
+            </div>
+
+            <div class="alert-item alert-info">
+                <div>
+                    <strong>INFO:</strong> Normal mode operational - Water level stable
+                    <div class="timestamp">14:00:05 | 15-Jan-2024</div>
+                </div>
+                <span>✓</span>
+            </div>
+
+            <div class="alert-item alert-warning">
+                <div>
+                    <strong>WARNING:</strong> Water rise detected: +5.2 cm in 15 minutes
+                    <div class="timestamp">13:45:33 | 15-Jan-2024</div>
+                </div>
+                <span>⚠</span>
+            </div>
+
+            <div class="alert-item alert-info">
+                <div>
+                    <strong>INFO:</strong> Battery charged to 78% - Solar active
+                    <div class="timestamp">12:30:00 | 15-Jan-2024</div>
+                </div>
+                <span>✓</span>
+            </div>
+
+            <div class="alert-item alert-info">
+                <div>
+                    <strong>INFO:</strong> MPU-6050 calibration completed successfully
+                    <div class="timestamp">06:00:15 | 15-Jan-2024</div>
+                </div>
+                <span>✓</span>
+            </div>
+        </div>
+
+        <!-- TABBED INTERFACE -->
+        <div class="card" style="grid-column: 1 / 4;">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('charts')">📊 Historical Data</button>
+                <button class="tab" onclick="switchTab('terminal')">💻 Terminal</button>
+                <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
+                <button class="tab" onclick="switchTab('diagnostics')">🔧 Diagnostics</button>
+                <button class="tab" onclick="switchTab('map')">🗺️ Location</button>
+            </div>
+
+            <!-- CHARTS TAB -->
+            <div id="charts" class="tab-content active">
+                <h3 style="margin-bottom: 1rem;">Water Level - Last 24 Hours</h3>
+                <div class="chart-container">
+                    <canvas id="levelChart"></canvas>
+                    <div class="chart-placeholder">
+                        📈 Chart rendering placeholder<br>
+                        <small>(Use Chart.js or similar library for live data visualization)</small>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary">Last 6 Hours</button>
+                    <button class="btn btn-primary">Last 24 Hours</button>
+                    <button class="btn btn-primary">Last 7 Days</button>
+                    <button class="btn btn-success">Export CSV</button>
+                </div>
+            </div>
+
+            <!-- TERMINAL TAB -->
+            <div id="terminal" class="tab-content">
+                <h3 style="margin-bottom: 1rem;">System Terminal (Root Access)</h3>
+                <div class="terminal" id="terminalOutput">
+                    <div class="terminal-output">
+Varuna Water Monitoring System - Local Terminal v1.0.3
+Raspberry Pi 4 Model B | Debian GNU/Linux 11 (bullseye)
+-----------------------------------------------------------
+</div>
+                    <div class="terminal-output">
+<span class="terminal-prompt">root@varuna-cwc-rj-001:~#</span> systemctl status varuna
+<span style="color: #0f0;">●</span> varuna.service - Varuna Water Level Monitoring Service
+     Loaded: loaded (/etc/systemd/system/varuna.service; enabled)
+     Active: <span style="color: #0f0;">active (running)</span> since Mon 2024-01-15 06:00:00 IST; 14d 9h ago
+   Main PID: 1234 (python3)
+      Tasks: 4 (limit: 4915)
+     Memory: 45.2M
+        CPU: 2h 15min
+     CGroup: /system.slice/varuna.service
+             └─1234 /usr/bin/python3 /opt/varuna/main.py
+</div>
+                    <div class="terminal-output">
+<span class="terminal-prompt">root@varuna-cwc-rj-001:~#</span> tail -n 3 /var/log/varuna/sensor.log
+2024-01-15 15:40:00 | INFO | MPU-6050: 87.3cm | HC-SR04: 87.3cm | MS5837: 88.1cm | Consensus: 87.6cm
+2024-01-15 15:41:00 | INFO | Mode: NORMAL | Battery: 78% | GSM: -67dBm | GPS: LOCKED
+2024-01-15 15:42:00 | INFO | Data transmitted successfully to cloud [200 OK]
+</div>
+                    <div class="terminal-output">
+<span class="terminal-prompt">root@varuna-cwc-rj-001:~#</span> i2cdetect -y 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- <span style="color: #0f0;">68</span> -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- <span style="color: #0f0;">76</span> --
+</div>
+                    <div class="terminal-input">
+                        <span class="terminal-prompt">root@varuna-cwc-rj-001:~#</span>
+                        <input type="text" id="terminalInput" placeholder="Type command here..." onkeypress="handleTerminalCommand(event)">
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="executeCommand('df -h')">Disk Usage</button>
+                    <button class="btn btn-primary" onclick="executeCommand('free -m')">Memory</button>
+                    <button class="btn btn-primary" onclick="executeCommand('python3 /opt/varuna/tools/read_sensors.py')">Read Sensors</button>
+                    <button class="btn btn-warning" onclick="executeCommand('systemctl restart varuna')">Restart Service</button>
+                    <button class="btn btn-success">Clear Terminal</button>
+                </div>
+            </div>
+
+            <!-- SETTINGS TAB -->
+            <div id="settings" class="tab-content">
+                <h3 style="margin-bottom: 1rem;">Device Configuration</h3>
+                
+                <div class="settings-form">
+                    <div class="form-group">
+                        <label>Device ID</label>
+                        <input type="text" value="CWC-RJ-001" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Site Name</label>
+                        <input type="text" value="Chambal River Station 1">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Danger Level (cm)</label>
+                        <input type="number" value="150">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Warning Level (cm)</label>
+                        <input type="number" value="120">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Normal Mode Interval (min)</label>
+                        <input type="number" value="60">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Flood Mode Interval (min)</label>
+                        <input type="number" value="5">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Rope Length (meters)</label>
+                        <input type="number" step="0.01" value="1.50">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Post Height (cm)</label>
+                        <input type="number" value="200">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Primary Alert Number</label>
+                        <input type="tel" value="+919876543210">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cloud API Endpoint</label>
+                        <input type="url" value="https://api.cwc.gov.in/varuna">
+                    </div>
+
+                    <div class="form-group">
+                        <label>GPS Update Interval (sec)</label>
+                        <input type="number" value="300">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Low Battery Threshold (%)</label>
+                        <input type="number" value="20">
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 2rem;">
+                    <button class="btn btn-success">Save Configuration</button>
+                    <button class="btn btn-warning">Reset to Default</button>
+                    <button class="btn btn-primary">Export Config</button>
+                    <button class="btn btn-primary">Import Config</button>
+                </div>
+            </div>
+
+            <!-- DIAGNOSTICS TAB -->
+            <div id="diagnostics" class="tab-content">
+                <h3 style="margin-bottom: 1rem;">System Diagnostics</h3>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Hardware Status</h4>
+                        <div class="sensor-details">
+                            <div>CPU Temp: <strong>45.2°C</strong></div>
+                            <div>CPU Usage: <strong>12%</strong></div>
+                            <div>RAM Usage: <strong>45.2 MB / 4 GB</strong></div>
+                            <div>Disk Usage: <strong>3.2 GB / 32 GB</strong></div>
+                            <div>I2C Bus: <strong style="color: var(--accent-green);">OK</strong></div>
+                            <div>GPIO: <strong style="color: var(--accent-green);">OK</strong></div>
+                            <div>RTC: <strong style="color: var(--accent-green);">SYNCED</strong></div>
+                            <div>Watchdog: <strong style="color: var(--accent-green);">ACTIVE</strong></div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Sensor Health</h4>
+                        <div class="sensor-details">
+                            <div>MPU-6050: <strong style="color: var(--accent-green);">ONLINE</strong></div>
+                            <div>HC-SR04: <strong style="color: var(--accent-green);">ONLINE</strong></div>
+                            <div>MS5837: <strong style="color: var(--accent-green);">ONLINE</strong></div>
+                            <div>GPS Module: <strong style="color: var(--accent-green);">LOCKED</strong></div>
+                            <div>GSM Module: <strong style="color: var(--accent-green);">REGISTERED</strong></div>
+                            <div>Last Calibration: <strong>06:00 Today</strong></div>
+                            <div>Failed Readings: <strong>0</strong></div>
+                            <div>Consensus Rate: <strong>100%</strong></div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Communication Stats</h4>
+                        <div class="sensor-details">
+                            <div>Total Transmissions: <strong>8,542</strong></div>
+                            <div>Success Rate: <strong>99.8%</strong></div>
+                            <div>Failed: <strong>17</strong></div>
+                            <div>Queued: <strong>0</strong></div>
+                            <div>SMS Sent: <strong>234</strong></div>
+                            <div>SMS Received: <strong>45</strong></div>
+                            <div>Data Usage (Month): <strong>85 MB</strong></div>
+                            <div>Avg Response Time: <strong>1.2s</strong></div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Power Analytics</h4>
+                        <div class="sensor-details">
+                            <div>Solar Production (Today): <strong>142 Wh</strong></div>
+                            <div>Wind Production (Today): <strong>58 Wh</strong></div>
+                            <div>Total Consumed (Today): <strong>59.8 Wh</strong></div>
+                            <div>Net Surplus (Today): <strong>+140.2 Wh</strong></div>
+                            <div>Charge Cycles: <strong>342</strong></div>
+                            <div>Battery Health: <strong style="color: var(--accent-green);">97%</strong></div>
+                            <div>Avg. Solar (Week): <strong>6.2 h/day</strong></div>
+                            <div>Autonomy Reserve: <strong>4.2 days</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 2rem;">
+                    <button class="btn btn-primary">Run Full Diagnostic</button>
+                    <button class="btn btn-primary">Sensor Self-Test</button>
+                    <button class="btn btn-warning">Clear Error Log</button>
+                    <button class="btn btn-success">Export Diagnostic Report</button>
+                </div>
+            </div>
+
+            <!-- MAP TAB -->
+            <div id="map" class="tab-content">
+                <h3 style="margin-bottom: 1rem;">GPS Location & Geofencing</h3>
+                
+                <div class="map-container">
+                    <div class="map-marker"></div>
+                    <div style="text-align: center; color: var(--text-secondary);">
+                        🗺️ Map View Placeholder<br>
+                        <small>(Integrate OpenStreetMap or Google Maps API)</small>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Current Location</h4>
+                        <div class="sensor-details">
+                            <div>Latitude: <strong>26.9124°N</strong></div>
+                            <div>Longitude: <strong>75.7873°E</strong></div>
+                            <div>Altitude: <strong>285 m</strong></div>
+                            <div>Accuracy: <strong>±3 m</strong></div>
+                            <div>Satellites: <strong>8</strong></div>
+                            <div>HDOP: <strong>1.2</strong></div>
+                            <div>Fix Type: <strong>3D GPS</strong></div>
+                            <div>Last Update: <strong>2 min ago</strong></div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(0, 0, 0, 0.3); padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="color: var(--accent-blue); margin-bottom: 1rem;">Geofence Status</h4>
+                        <div class="sensor-details">
+                            <div>Registered Position: <strong>26.9124°N, 75.7873°E</strong></div>
+                            <div>Current Offset: <strong>±1.2 m</strong></div>
+                            <div>Geofence Radius: <strong>100 m</strong></div>
+                            <div>Status: <strong style="color: var(--accent-green);">INSIDE</strong></div>
+                            <div>Tamper Alerts: <strong>0</strong></div>
+                            <div>Movement Detected: <strong>NO</strong></div>
+                            <div>Location Lock: <strong style="color: var(--accent-green);">ENABLED</strong></div>
+                            <div>Auto-Alert: <strong style="color: var(--accent-green);">ARMED</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 2rem;">
+                    <button class="btn btn-primary">Refresh GPS</button>
+                    <button class="btn btn-primary">Update Geofence</button>
+                    <button class="btn btn-success">Export KML</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODE CONTROLS -->
+        <div class="card" style="grid-column: 1 / 4;">
+            <div class="card-header">
+                <h2 class="card-title">⚙️ OPERATING MODE CONTROLS</h2>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-top: 1rem;">
+                <div style="background: rgba(16, 185, 129, 0.1); border: 2px solid var(--accent-green); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h3 style="color: var(--accent-green); margin-bottom: 0.5rem;">NORMAL MODE</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                        Hourly readings<br>
+                        All sensors active<br>
+                        GPRS transmission
+                    </p>
+                    <button class="btn btn-success" style="width: 100%;" onclick="setMode('NORMAL')">Activate</button>
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.1); border: 2px solid var(--accent-red); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h3 style="color: var(--accent-red); margin-bottom: 0.5rem;">FLOOD MODE</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                        5-min intervals<br>
+                        Emergency alerts<br>
+                        SMS + GPRS
+                    </p>
+                    <button class="btn btn-danger" style="width: 100%;" onclick="setMode('FLOOD')">Activate</button>
+                </div>
+
+                <div style="background: rgba(245, 158, 11, 0.1); border: 2px solid var(--accent-yellow); padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h3 style="color: var(--accent-yellow); margin-bottom: 0.5rem;">LOW POWER MODE</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                        6-hour intervals<br>
+                        Primary sensor only<br>
+                        SMS only
+                    </p>
+                    <button class="btn btn-warning" style="width: 100%;" onclick="setMode('LOWPOWER')">Activate</button>
+                </div>
+
+                <div style="background: rgba(99, 102, 241, 0.1); border: 2px solid #6366f1; padding: 1.5rem; border-radius: 12px; text-align: center;">
+                    <h3 style="color: #6366f1; margin-bottom: 0.5rem;">MAINTENANCE MODE</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1rem;">
+                        Suspend operations<br>
+                        Terminal access<br>
+                        Calibration
+                    </p>
+                    <button class="btn" style="width: 100%; background: #6366f1; color: white;" onclick="setMode('MAINTENANCE')">Activate</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // GLOBAL STATE
+        let currentMode = 'NORMAL';
+        let waterLevel = 87.6;
+        let batteryLevel = 78;
+
+        // TAB SWITCHING
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.classList.remove('active'));
+
+            // Deactivate all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // MODE SWITCHING
+        function setMode(mode) {
+            currentMode = mode;
+            const badge = document.getElementById('currentMode');
+            badge.textContent = mode;
+            
+            // Remove all mode classes
+            badge.className = 'status-value mode-badge';
+            
+            // Add appropriate class
+            switch(mode) {
+                case 'NORMAL':
+                    badge.classList.add('mode-normal');
+                    break;
+                case 'FLOOD':
+                    badge.classList.add('mode-flood');
+                    break;
+                case 'LOWPOWER':
+                    badge.classList.add('mode-lowpower');
+                    break;
+                case 'MAINTENANCE':
+                    badge.classList.add('mode-maintenance');
+                    break;
+            }
+
+            alert(`System switched to ${mode} MODE`);
+        }
+
+        // TERMINAL COMMAND HANDLER
+        function handleTerminalCommand(event) {
+            if (event.key === 'Enter') {
+                const input = event.target.value;
+                executeCommand(input);
+                event.target.value = '';
+            }
+        }
+
+        function executeCommand(cmd) {
+            const output = document.getElementById('terminalOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let response = '';
+            
+            // Simulate command responses
+            if (cmd.includes('status')) {
+                response = `Device ID: CWC-RJ-001\nLevel: ${waterLevel}cm\nBattery: ${batteryLevel}%\nMode: ${currentMode}\nSignal: -67dBm\nUptime: 342 hours`;
+            } else if (cmd.includes('df')) {
+                response = `Filesystem      Size  Used Avail Use% Mounted on\n/dev/root        29G  3.2G   25G  12% /\n/dev/mmcblk0p1  253M   48M  205M  19% /boot`;
+            } else if (cmd.includes('free')) {
+                response = `              total        used        free      shared  buff/cache   available\nMem:           3916         452        3105          12         358        3291\nSwap:             0           0           0`;
+            } else if (cmd.includes('read_sensors')) {
+                response = `Reading sensors...\nMPU-6050: 87.3 cm (Pitch: 32.5°)\nHC-SR04: 87.3 cm (Distance: 112.7 cm)\nMS5837: 88.1 cm (Pressure: 1023.4 mbar)\nConsensus: 87.6 cm`;
+            } else {
+                response = `Command executed: ${cmd}`;
+            }
+
+            output.innerHTML += `\n<div class="terminal-output">\n<span class="terminal-prompt">root@varuna-cwc-rj-001:~#</span> ${cmd}\n${response}\n</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // UPDATE CLOCK
+        setInterval(() => {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-IN');
+            document.querySelectorAll('.status-value')[2].textContent = timeStr;
+        }, 1000);
+
+        // SIMULATE LIVE DATA (for demo)
+        setInterval(() => {
+            // Slight random variation
+            waterLevel += (Math.random() - 0.5) * 0.5;
+            waterLevel = Math.max(50, Math.min(100, waterLevel)); // Keep in range
+
+            document.getElementById('waterLevel').textContent = waterLevel.toFixed(1);
+            document.getElementById('mpuLevel').textContent = waterLevel.toFixed(1);
+            document.getElementById('usLevel').textContent = waterLevel.toFixed(1);
+            document.getElementById('psLevel').textContent = (waterLevel + 0.5).toFixed(1);
+        }, 5000);
+
+        // INITIAL LOAD
+        console.log('🌊 VARUNA System Interface Loaded');
+        console.log('Device: CWC-RJ-001');
+        console.log('Mode: NORMAL');
+        console.log('All systems operational');
+    </script>
+</body>
+</html>
