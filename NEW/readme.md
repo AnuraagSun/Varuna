@@ -779,5 +779,101 @@ This feature list includes only the **4 defined operating modes** (Normal, Flood
 
 
 
-NOW WITH ALL OF THIS INFO I WANT YOU TO WRITE ME A MOCK HTML CODE FOR THE LOCAL EMBEDDED OS'S UI 
-WHT WE ARE GOING TO INCLUDE IN IT AND STUFF LIKE THT
+now the main objective is to build an embedded os  using qml  and c++; and connect the rpi along with its sensors to the website and display the data on it ; 
+the embedded os run locally on the rpi 4 model b 4gb ram 
+
+now with all of tht in mind :
+## Development Phase Breakdown (Step-by-Step)
+
+I need you to break this project into **incremental, bite-sized steps**. Each step adds only one small, testable feature. The goal is to build the entire UI incrementally without ever generating errors.
+
+### Code Requirements
+
+For each step, provide:
+
+### Step Header Format:
+```
+═══════════════════════════════════════════════════════════════
+PHASE X.STEP Y: [Feature Name]
+═══════════════════════════════════════════════════════════════
+
+📋 STEP OBJECTIVE:
+[Clear description of what this step adds]
+
+📁 FILES IN THIS STEP:
+
+🆕 NEW FILES TO CREATE:
+   - path/to/newfile1.qml
+   - path/to/newfile2.cpp
+   - path/to/newfile2.h
+
+📝 EXISTING FILES TO UPDATE:
+   - path/to/existingfile1.qml (adding [specific feature])
+   - path/to/existingfile2.cpp (adding [specific feature])
+
+⚠️ IMPORTANT: Only create/modify files listed above in this step
+
+💻 TERMINAL COMMANDS TO CREATE NEW FILES:
+[Bash commands to create directories and empty files]
+
+═══════════════════════════════════════════════════════════════
+```
+
+### Terminal Commands Format:
+```bash
+# Phase X.Step Y - File Creation Commands
+# Run these commands from the project root directory (infotainment-os-V14/)
+
+# Create directories (if needed)
+mkdir -p qml/components
+mkdir -p src
+mkdir -p resources/icons
+
+# Create empty files
+touch qml/components/NewComponent.qml
+touch src/newfile.cpp
+touch src/newfile.h
+```
+
+> **Note on Icons:** The `resources/icons/` directory is reserved for my custom PNG assets. In QML, always reference icons using `source: "qrc:/icons/filename.png"`. Do **not** embed base64 or use placeholder rectangles—use real `Image` components with valid paths so my PNGs will work when added later.
+
+
+
+## STRICT CODING & EDITORIAL POLICY
+
+> You are a precise code editor. Your job is to correct the **code only**, not change its logic or intended functionality.  
+>
+> Follow these strict rules:
+>
+> 1. ✅ **Only fix code issues (if mentioned any)** — do NOT modify or reinterpret the original logic.  
+> 2. ❌ **Never call a function that is not defined** within the current code unless it is a known built-in.  
+> 3. ❌ **Do not reference undefined variables** — always ensure every variable is declared and initialized before use.  
+> 4. ❌ **Avoid magic values or unexplained constants** — define them with meaningful names if necessary.  
+> 5. ❌ **Do not import unused modules** — only include necessary imports.  
+> 6. ❌ **Don’t create inconsistent indentation** — follow a consistent 4-space indent (or as per original).  
+> 7. ❌ **Do not mismatch variable types** — e.g., don’t pass strings to numeric functions.  
+> 8. ❌ **Never include placeholder comments like `// implement this` unless specifically asked.**  
+> 9. ❌ **Do not skip error handling** — use basic try/except or validations where needed.  
+> 10. ❌ **Do not use variables before assigning values**, even if it seems obvious.  
+> 11. ❌ **Avoid hardcoding file paths or settings** — use variables or parameters instead.  
+> 12. ❌ **Do not use outdated or deprecated syntax** — follow modern Qt 6 and C++17/20 standards.  
+> 13. ❌ **Do not leave code blocks incomplete** — e.g., empty loops, empty functions, or unclosed structures.  
+> 14. ✅ **If you’re unsure about something, comment it clearly** without assuming the functionality.  
+> 15. ✅ **Your task is to ensure the code is logically unchanged but syntactically and structurally clean, correct, and ready to run.**
+
+---
+
+## CRITICAL FORMATTING & SAFETY RULES
+
+⚠️ **ABSOLUTE REQUIREMENTS – MUST FOLLOW:**
+
+1. **ALL code must be inside code blocks** – Use ```cpp, ```qml, ```bash, ```cmake formatting.  
+2. **NEVER write code outside code blocks** – No inline code snippets in explanations.  
+3. **NEVER use "..." or truncation** – Every file must be complete from start to finish.  
+4. **ALWAYS include terminal commands** – Show exact bash commands to create files/directories.  
+5. **ALWAYS add file location comments** – At top and bottom of every code file.  
+6. **STRICT FILE OUTPUT RULE:** If you are adding more code to an existing file, you must print the **ENTIRE file from start to end**. If a file is not being modified in the current step, **do not print it at all**.  
+7. **NO FEATURE REGRESSION RULE:** You **must never remove, disable, or comment out** any feature, component, or logic that was added in a previous step. Every new step must **build upon and preserve** all prior functionality.  
+8. **STRICT NO-CODING-ERRORS RULE:** You must **absolutely ensure** that the code you provide is syntactically correct and will compile/run without any errors. **Before generating any code, you must mentally execute it line by line** to verify correctness. **If there is any possibility of an error, you must not provide the code and instead ask for clarification.** You are not allowed to provide code that contains syntax errors, type mismatches, undefined functions/variables, missing imports, or any other kind of error that would prevent successful compilation or execution. **Every step must produce a working, executable application with zero runtime crashes.** This rule supersedes all others.
+
+---
