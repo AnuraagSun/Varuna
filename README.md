@@ -50,3 +50,22 @@ RestartSec=5
 
 [Install]
 WantedBy=graphical.target
+
+
+
+-
+-
+-
+-
+-
+# Copy your built application
+sudo mkdir -p /opt/varuna
+sudo cp build/bin/VarunaOS /opt/varuna/
+
+# Enable the service
+sudo systemctl daemon-reload
+sudo systemctl enable varuna-kiosk.service
+sudo systemctl start varuna-kiosk.service
+
+# Check status
+sudo systemctl status varuna-kiosk.service
