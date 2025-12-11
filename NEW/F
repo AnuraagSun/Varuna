@@ -1,0 +1,67 @@
+#include <Wire.h>
+#include <MPU6050.h>
+
+MPU6050 mpu;
+const float ROPE_LENGTH = 10.0;  // meters (adjust to your setup)
+
+// Kalman filter variables for smoothing
+float kalmanAngle = 0;
+float kalmanUncertainty = 2;
+float kalmanGain;
+
+void setup() {
+    Serial.begin(115200);
+    Wire.begin();
+    mpu.initialize();
+    
+    if (!mpu.testConnection()) {
+        Serial.println("MPU6050 connection failed!");
+        while (1);
+    }
+    
+    // Calibration delay - ensure buoy is stable
+    Serial.println("Calibrating... Keep device still");
+    delay(3000);
+}
+
+float kalmanFilter(float measurement, float rate, float dt) {
+    // Prediction
+    kalmanAngle += dt * rate;
+    kalmanUncertainty += dt * dt * 4;  // Process noise
+    
+    // Update
+    kalmanGain = kalmanUncertainty / (kalmanUncertainty + 3);  // Measurement noise
+    kalmanAngle += kalmanGain * (measurement - kalmanAngle);
+    kalmanUncertainty *= (1 - kalmanGain);
+    
+    return kalmanAngle;
+}
+
+void loop() {
+    static unsigned long lastTime = 0;
+    unsigned long currentTime = millis();
+    float dt = (currentTime - lastTime) / 1000.0;
+    lastTime = currentTime;
+    
+    int16_t ax, ay, az, gx, gy, gz;
+    mpu.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    
+    // Convert accelerometer values to angles
+    float accelAngle = atan2(ax, sqrt(ay*ay + az*az)) * 180.0 / PI;
+    
+    // Convert gyro to degrees/sec
+    float gyroRate = gx / 131.0;  // For ±250°/s range
+    
+    // Apply Kalman filter (essential for water movement)
+    float filteredAngle = kalmanFilter(accelAngle, gyroRate, dt);
+    
+    // Calculate water depth
+    float angleRadians = filteredAngle * PI / 180.0;
+    float waterDepth = ROPE_LENGTH * cos(angleRadians);
+    
+    Serial.print("Angle: "); Serial.print(filteredAngle, 2);
+    Serial.print("° | Water Depth: "); Serial.print(waterDepth, 3);
+    Serial.println(" m");
+    
+    delay(100);  // 10Hz sampling
+}
