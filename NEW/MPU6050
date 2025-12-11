@@ -1,0 +1,84 @@
+#include <Wire.h>
+
+#define MPU 0x68
+
+// Raw accelerometer values
+int16_t AcX, AcY, AcZ;
+
+// Time tracking
+unsigned long lastTime = 0;
+
+// Filtered angle
+float filteredAng = 0;
+
+// Calibration variables
+bool calibrated = false;
+float offsetAngle = 0;
+unsigned long calibStart = 0;
+float calibSum = 0;
+int calibCount = 0;
+
+void setup() {
+  Serial.begin(115200);
+  delay(1000);
+
+  Wire.begin(17, 18);  // SDA, SCL (ESP32-S3)
+  Wire.beginTransmission(MPU);
+  Wire.write(0x6B);
+  Wire.write(0);
+  Wire.endTransmission(true);
+
+  Serial.println("MPU6050 READY – Auto-calibrating for 2 seconds...");
+  calibStart = millis();
+}
+
+void loop() {
+
+  // ---------------- READ ACCELEROMETER ----------------
+  Wire.beginTransmission(MPU);
+  Wire.write(0x3B);
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU, 6, true);
+
+  AcX = (Wire.read() << 8) | Wire.read();
+  AcY = (Wire.read() << 8) | Wire.read();
+  AcZ = (Wire.read() << 8) | Wire.read();
+
+  float ax = AcX / 16384.0;
+  float ay = AcY / 16384.0;
+  float az = AcZ / 16384.0;
+
+  // Raw inclinometer angle
+  float measuredAng = atan2(ax, sqrt(ay * ay + az * az)) * 180.0 / PI;
+
+  // ---------------- AUTO CALIBRATION ----------------
+  if (!calibrated) {
+    if (millis() - calibStart <= 2000) {
+      calibSum += measuredAng;
+      calibCount++;
+    } else {
+      offsetAngle = calibSum / calibCount;
+      calibrated = true;
+      Serial.print("Calibration completed. Offset = ");
+      Serial.println(offsetAngle);
+      delay(300);
+    }
+    return;
+  }
+
+  // ---------------- CORRECTED ANGLE ----------------
+  float angd = measuredAng - offsetAngle;
+
+  // ---------------- SMOOTHING FILTER ----------------
+  float alpha = 0.1;
+  filteredAng = filteredAng + alpha * (angd - filteredAng);
+
+  // ---------------- PRINT OUTPUT EVERY 500ms ----------------
+  static unsigned long lastPrint = 0;
+  if (millis() - lastPrint >= 500) {
+    lastPrint = millis();
+
+    Serial.print("Angle(deg): ");
+    Serial.println(filteredAng, 2);
+  }
+}
