@@ -1,3 +1,24 @@
+```
+varuna-os/
+├── src/
+│   ├── main.cpp                // Registers SensorManager context property
+│   ├── SensorManager.h         // The bridge
+│   ├── SensorManager.cpp       // High-level logic
+│   ├── drivers/
+│   │   ├── GsmHandler.cpp      // Low-level SIM900A AT commands
+│   │   └── StorageHandler.cpp  // SD Card file I/O
+├── qml/
+│   ├── Main.qml                // Navigation host
+│   ├── components/
+│   │   ├── SectionTitle.qml
+│   │   └── CustomButton.qml
+│   └── screens/
+│       ├── SettingsScreen.qml
+│       └── CommunicationScreen.qml  <-- (Current File)
+└── CMakeLists.txt              // Build config
+```
+
+
 # 🏗️ **COMPLETE SYSTEM ARCHITECTURE: VARUNA**
 
 ## **EXECUTIVE SUMMARY**
